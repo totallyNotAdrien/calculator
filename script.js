@@ -37,28 +37,117 @@ function randomRangeExclusive(a, b = 0)
     }
 }
 
+const Special =
+{
+    ADD: "+",
+    SUBTRACT: "-",
+    MULTIPLY: "*",
+    DIVIDE: "/",
+    NEGATE: "+/-",
+    PERCENT: "%",
+    EQUALS: "=",
+    CLEAR: "C",
+    DECIMAL: "."
+};
+
 const grid = document.querySelector("#grid");
 const gridArr = Array.from(grid.querySelectorAll("div"));
-const textArr = gridArr.map((node) => node.textContent);
+const displayText = document.querySelector("#display-text");
+const chars = ['C', '+/-', '%', '/', '7', '8', '9', '*', '4', '5', '6', '-', '1', '2', '3', '+', '0', '.', '='];
+let currValue = "0";
 
-let lastNum = parseInt(textArr[textArr.length - 1]);
-lastNum = 0;
-let nums = [1,2,3,4,5,6,7,8,9];
-let chars = ['C','+/-','%','/','7','8','9','*','4','5','6','-','1','2','3','+','0','.','='];
-addStuffToGrid(chars);
+setup();
+
 
 function addStuffToGrid(things)
 {
-    for(let i = 0; i < things.length; i++)
+    for (let i = 0; i < things.length; i++)
     {
         let temp = document.createElement("button");
+        console.log(i);
         temp.textContent = "" + things[i];
         temp.classList.add("grid-item");
-        
-        //temp.style.borderStyle = "solid";
-        //temp.style.borderColor = Color.BLACK.toCssString();
-        //temp.style.backgroundColor = Color.randomColor().toCssString();
+        temp.setAttribute("data-char", things[i])
+        setupButtonListener(temp);
+        //temp.addEventListener("click", sayData);
         grid.appendChild(temp);
     }
 }
 
+function sayData(e)
+{
+    console.log(e.target.dataset.char);
+}
+
+function operate()
+{
+
+}
+
+function setup()
+{
+    console.log(`${chars.length} buttons to add`);
+    addStuffToGrid(chars);
+    updateDisplay();
+}
+
+function setupButtonListener(button)
+{
+    switch (button.dataset.char)
+    {
+        case Special.CLEAR:
+            button.addEventListener("click", clearDisplay);
+            console.log("isClear");
+            break;
+        case Special.ADD:
+        case Special.SUBTRACT:
+        case Special.MULTIPLY:
+        case Special.DIVIDE:
+        case Special.PERCENT:
+        case Special.EQUALS:
+        case Special.DECIMAL:
+            button.addEventListener("click", appendCharToCurrValue);
+            console.log("isSomethingElse");
+            break;
+        case Special.NEGATE:
+            button.addEventListener("click", negate);
+            console.log("isNegate");
+            break;
+        default:
+            button.addEventListener("click", appendCharToCurrValue);
+            console.log("isNumber");
+            break;
+    }
+}
+
+function appendCharToCurrValue(e)
+{
+    currValue += "" + e.target.dataset.char;
+    updateDisplay();
+}
+
+function clearDisplay()
+{
+    currValue = "0";
+    updateDisplay();
+}
+
+function updateDisplay()
+{
+    displayText.textContent = currValue;
+}
+
+function negate()
+{
+    let index;
+    if (index = currValue.indexOf("-") >= 0)
+    {
+        currValue = currValue.slice(1);
+    }
+    else
+    {
+        currValue = "-" + currValue;
+    }
+    updateDisplay();
+    console.log("pressed negate");
+}
