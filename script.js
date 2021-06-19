@@ -47,17 +47,25 @@ const Special =
     PERCENT: "%",
     EQUALS: "=",
     CLEAR: "C",
-    DECIMAL: "."
+    DECIMAL: ".",
+    DELETE: "delete"
 };
 
 const grid = document.querySelector("#grid");
 const gridArr = Array.from(grid.querySelectorAll("div"));
 const displayText = document.querySelector("#display-text");
-const chars = ['C', '+/-', '%', '/', '7', '8', '9', '*', '4', '5', '6', '-', '1', '2', '3', '+', '0', '.', '='];
+const chars = 
+[
+    Special.CLEAR, Special.NEGATE, Special.PERCENT, Special.DIVIDE, 
+    '7', '8', '9', Special.MULTIPLY, 
+    '4', '5', '6', Special.SUBTRACT, 
+    '1', '2', '3', Special.ADD, 
+    '0', Special.DECIMAL, Special.EQUALS, Special.DELETE
+];
 const maxChars = 17;
 
-let currValue = "0";
-let hasDecimal = false;
+let currVal_text = "0";
+let justCleared = true;
 
 setup();
 
@@ -72,14 +80,8 @@ function addStuffToGrid(things)
         temp.classList.add("grid-item");
         temp.setAttribute("data-char", things[i])
         setupButtonListener(temp);
-        //temp.addEventListener("click", sayData);
         grid.appendChild(temp);
     }
-}
-
-function sayData(e)
-{
-    console.log(e.target.dataset.char);
 }
 
 function operate()
@@ -106,28 +108,41 @@ function setupButtonListener(button)
         case Special.SUBTRACT:
         case Special.MULTIPLY:
         case Special.DIVIDE:
+            break;
         case Special.PERCENT:
+            break;
         case Special.EQUALS:
+            break;
         case Special.DECIMAL:
-            button.addEventListener("click", decimalEvent);
+            button.addEventListener("click", decimalButtonPressed);
             console.log("isSomethingElse");
             break;
         case Special.NEGATE:
-            button.addEventListener("click", negate);
+            button.addEventListener("click", negateCurrVal);
             console.log("isNegate");
             break;
+        case Special.DELETE:
+            button.addEventListener("click", deleteButtonPressed);
+            break;
         default:
-            button.addEventListener("click", appendCharToCurrValue);
+            button.addEventListener("click", (e) => appendCharToCurrValue(e.target.dataset.char));
             console.log("isNumber");
             break;
     }
 }
 
-function appendCharToCurrValue(e)
+function appendCharToCurrValue(char)
 {
-    if(currValue.length < maxChars)
+    if(currVal_text.length < maxChars)
     {
-        currValue += "" + e.target.dataset.char;
+        if(currVal_text === "0" && char !== Special.DECIMAL)
+        {
+            currVal_text = char;
+        }
+        else
+        {
+            currVal_text += char;
+        }
         updateDisplay();
         return true;
     }
@@ -136,35 +151,43 @@ function appendCharToCurrValue(e)
 
 function clearDisplay()
 {
-    currValue = "0";
+    currVal_text = "0";
     updateDisplay();
 }
 
 function updateDisplay()
 {
-    displayText.textContent = currValue;
+    displayText.textContent = currVal_text;
 }
 
-function negate()
+function negateCurrVal()
 {
-    if (currValue.indexOf("-") >= 0)
+    if (currVal_text.indexOf("-") === 0)
     {
-        currValue = currValue.slice(1);
+        currVal_text = currVal_text.slice(1);
     }
     else
     {
-        currValue = "-" + currValue;
+        currVal_text = "-" + currVal_text;
     }
     updateDisplay();
     console.log("pressed negate");
 }
 
-function decimalEvent(e)
+function decimalButtonPressed()
 {
-    
+    if(!hasDecimal())
+    {
+        appendCharToCurrValue(Special.DECIMAL);
+    }
 }
 
-function resetDecimal()
+function hasDecimal()
 {
-    hasDecimal = false;
+    return currVal_text.toString().includes(Special.DECIMAL);
+}
+
+function deleteButtonPressed()
+{
+
 }
