@@ -54,7 +54,10 @@ const grid = document.querySelector("#grid");
 const gridArr = Array.from(grid.querySelectorAll("div"));
 const displayText = document.querySelector("#display-text");
 const chars = ['C', '+/-', '%', '/', '7', '8', '9', '*', '4', '5', '6', '-', '1', '2', '3', '+', '0', '.', '='];
+const maxChars = 17;
+
 let currValue = "0";
+let hasDecimal = false;
 
 setup();
 
@@ -106,7 +109,7 @@ function setupButtonListener(button)
         case Special.PERCENT:
         case Special.EQUALS:
         case Special.DECIMAL:
-            button.addEventListener("click", appendCharToCurrValue);
+            button.addEventListener("click", decimalEvent);
             console.log("isSomethingElse");
             break;
         case Special.NEGATE:
@@ -122,8 +125,13 @@ function setupButtonListener(button)
 
 function appendCharToCurrValue(e)
 {
-    currValue += "" + e.target.dataset.char;
-    updateDisplay();
+    if(currValue.length < maxChars)
+    {
+        currValue += "" + e.target.dataset.char;
+        updateDisplay();
+        return true;
+    }
+    return false;
 }
 
 function clearDisplay()
@@ -139,8 +147,7 @@ function updateDisplay()
 
 function negate()
 {
-    let index;
-    if (index = currValue.indexOf("-") >= 0)
+    if (currValue.indexOf("-") >= 0)
     {
         currValue = currValue.slice(1);
     }
@@ -150,4 +157,14 @@ function negate()
     }
     updateDisplay();
     console.log("pressed negate");
+}
+
+function decimalEvent(e)
+{
+    
+}
+
+function resetDecimal()
+{
+    hasDecimal = false;
 }
