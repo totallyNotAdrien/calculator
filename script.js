@@ -37,6 +37,22 @@ function randomRangeExclusive(a, b = 0)
     }
 }
 
+function allSameType()
+{
+    if (arguments.length > 0)
+    {
+        let first = arguments[0];
+        for (let i = 1; i < arguments.length; i++)
+        {
+            if (typeof first !== typeof arguments[i])
+            {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
 const Special =
 {
     ADD: "+",
@@ -48,35 +64,50 @@ const Special =
     EQUALS: "=",
     CLEAR: "clear",
     DECIMAL: ".",
-    DELETE: "delete"
+    DELETE: "delete",
+    NIL: "nil",
+    includesValue: function (val)
+    {
+        let keys = Object.keys(this);
+        for (let i = 0; i < keys.length; i++)
+        {
+            if (this[keys[i]] === val)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
 };
 
 const grid = document.querySelector("#grid");
 const gridArr = Array.from(grid.querySelectorAll("div"));
 const displayText = document.querySelector("#display-text");
-const chars = 
-[
-    Special.CLEAR, Special.NEGATE, Special.PERCENT, Special.DIVIDE, 
-    '7', '8', '9', Special.MULTIPLY, 
-    '4', '5', '6', Special.SUBTRACT, 
-    '1', '2', '3', Special.ADD, 
-    '0', Special.DECIMAL, Special.EQUALS, Special.DELETE
-];
+const chars =
+    [
+        Special.CLEAR, Special.NEGATE, Special.PERCENT, Special.DIVIDE,
+        '7', '8', '9', Special.MULTIPLY,
+        '4', '5', '6', Special.SUBTRACT,
+        '1', '2', '3', Special.ADD,
+        '0', Special.DECIMAL, Special.EQUALS, Special.DELETE
+    ];
 const maxChars = 17;
 
-const Operands = 
+const Operation =
 {
-    left: "",
-    right: "",
+    operator: Special.NIL,
+    left: Number.NaN,
+    right: Number.NaN,
     reset: function ()
     {
-        this.left = "";
-        this.right = "";
+        this.operator = Special.NIL;
+        this.left = Number.NaN;
+        this.right = Number.NaN;
     }
 };
 
 let currVal_text = "0";
-let currOperator = "";
+let prevButtonWasOperator = false;
 
 setup();
 
@@ -95,10 +126,7 @@ function addStuffToGrid(things)
     }
 }
 
-function operate()
-{
 
-}
 
 function setup()
 {
@@ -118,10 +146,16 @@ function setupButtonListener(button)
         case Special.SUBTRACT:
         case Special.MULTIPLY:
         case Special.DIVIDE:
+            button.addEventListener("click", (e) => setupOperation(e.target.dataset.char));
             break;
         case Special.PERCENT:
             break;
         case Special.EQUALS:
+            button.addEventListener("click", () => 
+            {
+                currVal_text = operate();
+                updateDisplay();
+            });
             break;
         case Special.DECIMAL:
             button.addEventListener("click", appendDecimal);
@@ -140,9 +174,15 @@ function setupButtonListener(button)
 
 function appendCharToCurrValue(char)
 {
-    if(currVal_text.length < maxChars)
+    //after operator has been pressed
+    if (Operation.operator !== Special.NIL && prevButtonWasOperator)
     {
-        if(currVal_text === "0" && char !== Special.DECIMAL)
+        prevButtonWasOperator = false;
+        currVal_text = "0";
+    }
+    if (currVal_text.length < maxChars)
+    {
+        if (currVal_text === "0" && char !== Special.DECIMAL)
         {
             currVal_text = char;
         }
@@ -151,21 +191,39 @@ function appendCharToCurrValue(char)
             currVal_text += char;
         }
         updateDisplay();
-        return true;
     }
-    return false;
 }
 
 function clearAndResetEverything()
 {
     currVal_text = "0";
-    Operands.reset();
+    Operation.reset();
+    prevButtonWasOperator = false;
     updateDisplay();
 }
 
 function updateDisplay()
 {
     displayText.textContent = currVal_text;
+}
+
+function setupOperation(operator)
+{
+    if (Special.includesValue(operator))
+    {
+        prevButtonWasOperator = true;
+        if (Number.isNaN(Operation.left))
+        {
+            Operation.operator = operator;
+            Operation.left = parseFloat(currVal_text);
+        }
+        else
+        {
+            Operation.right = parseFloat(currVal_text);
+            currVal_text = operate();
+        }
+
+    }
 }
 
 function negateCurrVal()
@@ -184,7 +242,7 @@ function negateCurrVal()
 
 function appendDecimal()
 {
-    if(!hasDecimal())
+    if (!hasDecimal())
     {
         appendCharToCurrValue(Special.DECIMAL);
     }
@@ -203,7 +261,7 @@ function deleteMostRecentChar()
 function add(left, right)
 {
     //check for NaN
-    if(left === left && right === right)
+    if (allSameType(2, left, right) && left === left && right === right)
     {
         return left + right;
     }
@@ -213,7 +271,7 @@ function add(left, right)
 function subtract(left, right)
 {
     //check for NaN
-    if(left === left && right === right)
+    if (allSameType(2, left, right) && left === left && right === right)
     {
         return left - right;
     }
@@ -223,7 +281,7 @@ function subtract(left, right)
 function multiply(left, right)
 {
     //check for NaN
-    if(left === left && right === right)
+    if (allSameType(2, left, right) && left === left && right === right)
     {
         return left * right;
     }
@@ -233,9 +291,9 @@ function multiply(left, right)
 function divide(left, right)
 {
     //check for NaN
-    if(left === left && right === right)
+    if (allSameType(2, left, right) && left === left && right === right)
     {
-        if(right === 0)
+        if (right === 0)
         {
             alert("No, thank you.");
             clearAndResetEverything();
@@ -246,4 +304,39 @@ function divide(left, right)
         }
     }
     return Number.NaN;
+}
+
+function operate()
+{
+    if (Number.isNaN(Operation.right))
+    {
+        if (Number.isNaN(Operation.left))
+        {
+            console.log("returned the currVal_text because both operands are NaN");
+            return currVal_text;
+        }
+        else
+        {
+            if (Operation.operator !== Special.NIL)
+            {
+                if(prevButtonWasOperator)
+                {
+                    Operation.right = Operation.left;
+                }
+                else
+                {
+                    Operation.right = parseFloat(currVal_text);
+                }
+            }
+        }
+    }
+    let result;
+    switch(Operation.operator)
+    {
+        case Special.ADD:
+            result = add(Operation.left, Operation.right).toString();
+            break;
+    }
+    Operation.reset();
+    return result;
 }
