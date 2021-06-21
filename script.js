@@ -46,7 +46,7 @@ const Special =
     NEGATE: "+/-",
     PERCENT: "%",
     EQUALS: "=",
-    CLEAR: "C",
+    CLEAR: "clear",
     DECIMAL: ".",
     DELETE: "delete"
 };
@@ -64,8 +64,19 @@ const chars =
 ];
 const maxChars = 17;
 
+const Operands = 
+{
+    left: "",
+    right: "",
+    reset: function ()
+    {
+        this.left = "";
+        this.right = "";
+    }
+};
+
 let currVal_text = "0";
-let justCleared = true;
+let currOperator = "";
 
 setup();
 
@@ -91,7 +102,7 @@ function operate()
 
 function setup()
 {
-    console.log(`${chars.length} buttons to add`);
+    //console.log(`${chars.length} buttons to add`);
     addStuffToGrid(chars);
     updateDisplay();
 }
@@ -101,8 +112,7 @@ function setupButtonListener(button)
     switch (button.dataset.char)
     {
         case Special.CLEAR:
-            button.addEventListener("click", clearDisplay);
-            console.log("isClear");
+            button.addEventListener("click", clearAndResetEverything);
             break;
         case Special.ADD:
         case Special.SUBTRACT:
@@ -114,19 +124,16 @@ function setupButtonListener(button)
         case Special.EQUALS:
             break;
         case Special.DECIMAL:
-            button.addEventListener("click", decimalButtonPressed);
-            console.log("isSomethingElse");
+            button.addEventListener("click", appendDecimal);
             break;
         case Special.NEGATE:
             button.addEventListener("click", negateCurrVal);
-            console.log("isNegate");
             break;
         case Special.DELETE:
-            button.addEventListener("click", deleteButtonPressed);
+            button.addEventListener("click", deleteMostRecentChar);
             break;
         default:
             button.addEventListener("click", (e) => appendCharToCurrValue(e.target.dataset.char));
-            console.log("isNumber");
             break;
     }
 }
@@ -149,9 +156,10 @@ function appendCharToCurrValue(char)
     return false;
 }
 
-function clearDisplay()
+function clearAndResetEverything()
 {
     currVal_text = "0";
+    Operands.reset();
     updateDisplay();
 }
 
@@ -174,7 +182,7 @@ function negateCurrVal()
     console.log("pressed negate");
 }
 
-function decimalButtonPressed()
+function appendDecimal()
 {
     if(!hasDecimal())
     {
@@ -187,7 +195,55 @@ function hasDecimal()
     return currVal_text.toString().includes(Special.DECIMAL);
 }
 
-function deleteButtonPressed()
+function deleteMostRecentChar()
 {
 
+}
+
+function add(left, right)
+{
+    //check for NaN
+    if(left === left && right === right)
+    {
+        return left + right;
+    }
+    return Number.NaN;
+}
+
+function subtract(left, right)
+{
+    //check for NaN
+    if(left === left && right === right)
+    {
+        return left - right;
+    }
+    return Number.NaN;
+}
+
+function multiply(left, right)
+{
+    //check for NaN
+    if(left === left && right === right)
+    {
+        return left * right;
+    }
+    return Number.NaN;
+}
+
+function divide(left, right)
+{
+    //check for NaN
+    if(left === left && right === right)
+    {
+        if(right === 0)
+        {
+            alert("No, thank you.");
+            clearAndResetEverything();
+        }
+        else
+        {
+            return left / right;
+        }
+    }
+    return Number.NaN;
 }
