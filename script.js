@@ -327,7 +327,7 @@ function operate()
             result = divide(Operation.left, Operation.right);
             break;
     }
-    currVal_text = result;
+    currVal_text = result.toString();
     updateDisplay();
 }
 
@@ -401,9 +401,29 @@ function hasDecimal()
 
 function deleteMostRecentChar()
 {
-
+    if(prevButtonWasDigitOrDecimal())
+    {
+        if(currVal_text.length === 2 && currVal_text[0] === "-")
+        {
+            resetCurrValAndPreviousButton();
+        }
+        else if(currVal_text.length >= 2)
+        {
+            currVal_text = currVal_text.substring(0, currVal_text.length - 1);
+            prevButton = currVal_text[currVal_text.length - 1];
+        }
+        else
+        {
+            resetCurrValAndPreviousButton();
+        }
+        updateDisplay();
+    }
 }
-
+function resetCurrValAndPreviousButton()
+{
+    currVal_text = "0";
+    prevButton = Special.NIL;
+}
 
 function add(left, right)
 {
@@ -444,6 +464,7 @@ function divide(left, right)
         {
             alert("No, thank you.");
             clearAndResetEverything();
+            return 0;
         }
         else
         {
