@@ -146,14 +146,8 @@ function setupButtonListener(button)
         case Special.SUBTRACT:
         case Special.MULTIPLY:
         case Special.DIVIDE:
-            button.addEventListener("click", trackedButtonPress);
-            break;
         case Special.PERCENT:
-            //do this**************************************************************
-            break;
         case Special.EQUALS:
-            button.addEventListener("click", trackedButtonPress);
-            break;
         case Special.DECIMAL:
             button.addEventListener("click", trackedButtonPress);
             break;
@@ -181,7 +175,7 @@ function trackedButtonPress(e)
             completed = setupOperation(e.target.dataset.char);
             break;
         case Special.PERCENT:
-            //do this**************************************************************
+            completed = doPercentThing();
             break;
         case Special.EQUALS:
             completed = performOperation();
@@ -239,13 +233,13 @@ function updateDisplay()
 
 function setupOperation(operator)
 {
-    if(prevButtonWasDigitOrDecimal() && Operation.operator !== Special.NIL)
+    if(prevButtonIsDigitOrDecimal() && Operation.operator !== Special.NIL)
     {
         Operation.right = parseFloat(currVal_text);
         operate();
         Operation.left = parseFloat(currVal_text);
     }
-    if(Number.isNaN(Operation.left))
+    if(!leftOperandIsSet())
     {
         Operation.left = parseFloat(currVal_text);
     }
@@ -263,17 +257,17 @@ function performOperation()
     if(Operation.operator !== Special.NIL)
     {
         //just after operate is called elsewhere
-        if(isOperator(prevButton) && !Number.isNaN(Operation.right) ||
+        if(prevButtonIsOperator() && rightOperandIsSet() ||
             prevButton === Special.EQUALS)
         {
             Operation.left = parseFloat(currVal_text);
         }
 
-        if(isOperator(prevButton))
+        if(prevButtonIsOperator())
         {
             Operation.right = Operation.left;
         }
-        else if(!isOperator(prevButton) && prevButtonWasDigitOrDecimal())
+        else if(!prevButtonIsOperator() && prevButtonIsDigitOrDecimal())
         {
             Operation.right = parseFloat(currVal_text);
         }
@@ -285,12 +279,12 @@ function performOperation()
     return false;
 }
 
-//make this part of Operation obj
+//make this part of Operation obj?
 function operate()
 {
-    if(Number.isNaN(Operation.right))
+    if(!rightOperandIsSet())
     {
-        if(Number.isNaN(Operation.left))
+        if(!leftOperandIsSet())
         {
             //set left?
             console.log("returned the currVal_text because both operands are NaN");
@@ -300,7 +294,7 @@ function operate()
         {
             if(Operation.operator !== Special.NIL)
             {
-                if(isOperator(prevButton))
+                if(prevButtonIsOperator())
                 {
                     Operation.right = Operation.left;
                 }
@@ -331,6 +325,34 @@ function operate()
     updateDisplay();
 }
 
+function doPercentThing()
+{
+    if(prevButtonIsDigitOrDecimal())
+    {
+        if(leftOperandIsSet() && 
+            (Operation.operator === Special.ADD || Operation.operator === Special.SUBTRACT))
+        {
+            let val = parseFloat(currVal_text);
+            let valAsPercentage = val / 100.0;
+            let percentOfLeft = Operation.left * valAsPercentage;
+            currVal_text = percentOfLeft.toString();
+        }
+        else if(!leftOperandIsSet() || 
+            Operation.operator === Special.MULTIPLY || Operation.operator === Special.DIVIDE)
+        {
+            let currAsPercentage = parseFloat(currVal_text) / 100.0;
+            currVal_text = currAsPercentage.toString();
+        }
+    }
+    else if(prevButton === Special.EQUALS)
+    {
+        let currAsPercentage = parseFloat(currVal_text) / 100.0;
+        Operation.left = currAsPercentage;
+        currVal_text = currAsPercentage.toString();
+    }
+    updateDisplay();
+}
+
 function isOperator(char)
 {
     switch(char)
@@ -345,19 +367,34 @@ function isOperator(char)
     }
 }
 
-function prevButtonWasDigit()
+function prevButtonIsOperator()
+{
+    return isOperator(prevButton);
+}
+
+function prevButtonIsDigit()
 {
     return prevButton >= '0' && prevButton <= '9';
 }
 
-function prevButtonWasDigitOrDecimal()
+function prevButtonIsDigitOrDecimal()
 {
-    return prevButtonWasDigit() || prevButton === Special.DECIMAL;
+    return prevButtonIsDigit() || prevButton === Special.DECIMAL;
+}
+
+function leftOperandIsSet()
+{
+    return !Number.isNaN(Operation.left);
+}
+
+function rightOperandIsSet()
+{
+    return !Number.isNaN(Operation.right);
 }
 
 function resetCurrValIfOperatorPrevPressed()
 {
-    if(Operation.operator !== Special.NIL && isOperator(prevButton))
+    if(Operation.operator !== Special.NIL && prevButtonIsOperator())
     {
         currVal_text = "0";
     }
@@ -401,7 +438,7 @@ function hasDecimal()
 
 function deleteMostRecentChar()
 {
-    if(prevButtonWasDigitOrDecimal())
+    if(prevButtonIsDigitOrDecimal())
     {
         if(currVal_text.length === 2 && currVal_text[0] === "-")
         {
