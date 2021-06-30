@@ -271,6 +271,10 @@ function performOperation()
         {
             Operation.right = parseFloat(currVal_text);
         }
+        else if(prevButtonIsPercent())
+        {
+            Operation.right = parseFloat(currVal_text);
+        }
         operate();
         updateDisplay();
         return true;
@@ -329,19 +333,23 @@ function doPercentThing()
 {
     if(prevButtonIsDigitOrDecimal())
     {
-        if(leftOperandIsSet() && 
+        if(leftOperandIsSet() &&
             (Operation.operator === Special.ADD || Operation.operator === Special.SUBTRACT))
         {
             let val = parseFloat(currVal_text);
             let valAsPercentage = val / 100.0;
             let percentOfLeft = Operation.left * valAsPercentage;
             currVal_text = percentOfLeft.toString();
+            updateDisplay();
+            return true;
         }
-        else if(!leftOperandIsSet() || 
+        else if(!leftOperandIsSet() ||
             Operation.operator === Special.MULTIPLY || Operation.operator === Special.DIVIDE)
         {
             let currAsPercentage = parseFloat(currVal_text) / 100.0;
             currVal_text = currAsPercentage.toString();
+            updateDisplay();
+            return true;
         }
     }
     else if(prevButton === Special.EQUALS)
@@ -349,8 +357,37 @@ function doPercentThing()
         let currAsPercentage = parseFloat(currVal_text) / 100.0;
         Operation.left = currAsPercentage;
         currVal_text = currAsPercentage.toString();
+        updateDisplay();
+        return true;
+    }
+    else if(prevButtonIsOperator())
+    {
+        if(Operation.operator === Special.ADD || Operation.operator === Special.SUBTRACT)
+        {
+            let val = Operation.left;
+            let valAsPercentage = val / 100.0;
+            let percentOfLeft = Operation.left * valAsPercentage;
+            currVal_text = percentOfLeft.toString();
+            updateDisplay();
+            return true;
+        }
+        else if(Operation.operator === Special.MULTIPLY || Operation.operator === Special.DIVIDE)
+        {
+            let valAsPercentage = Operation.left / 100.0;
+            currVal_text = valAsPercentage.toString();
+            updateDisplay();
+            return true;
+        }
+    }
+    else if(prevButtonIsPercent())
+    {
+        let currAsPercentage = parseFloat(currVal_text) / 100.0;
+        currVal_text = currAsPercentage.toString();
+        updateDisplay();
+        return true;
     }
     updateDisplay();
+    return false;
 }
 
 function isOperator(char)
@@ -370,6 +407,11 @@ function isOperator(char)
 function prevButtonIsOperator()
 {
     return isOperator(prevButton);
+}
+
+function prevButtonIsPercent()
+{
+    return prevButton === Special.PERCENT;
 }
 
 function prevButtonIsDigit()
