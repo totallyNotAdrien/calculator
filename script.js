@@ -117,7 +117,7 @@ function addStuffToGrid(things)
     for(let i = 0; i < things.length; i++)
     {
         let temp = document.createElement("button");
-        console.log(i);
+        //console.log(i);
         temp.textContent = "" + things[i];
         temp.classList.add("grid-item");
         temp.setAttribute("data-char", things[i])
@@ -191,6 +191,8 @@ function trackedButtonPress(e)
     {
         prevButton = e.target.dataset.char;
     }
+    //test whether else{set to NIL} breaks things -------------------------------------------------
+    updateDisplay();
 }
 
 function typeDigitOrDecimal(char)
@@ -228,7 +230,33 @@ function clearAndResetEverything()
 
 function updateDisplay()
 {
-    displayText.textContent = currVal_text;
+    let currAsNum = parseFloat(currVal_text);
+    let temp = parseFloat(currAsNum.toPrecision(15));
+    let tempString = temp.toString();
+    let tenTo13th = Math.pow(10,13);
+    let tenToNeg7th = Math.pow(10,-7);
+    let tooMuchPrecision = tempString.length > 13 && 
+        (temp < 1 && temp > tenToNeg7th || temp > -1 && temp < -tenToNeg7th);
+
+    if(temp === 0 || prevButtonIsDigitOrDecimal())
+    {
+        displayText.textContent = currVal_text;
+    }
+    else if(tooMuchPrecision)
+    {
+        displayText.textContent = temp.toPrecision(7);
+        //console.log("precision: 7");
+    }
+    else if(temp >= tenTo13th || temp <= -tenTo13th || (temp <= tenToNeg7th && temp >= -tenToNeg7th))
+    {
+        displayText.textContent = temp.toExponential(5);
+        //console.log("exponential: 5");
+    }
+    else
+    {
+        displayText.textContent = temp.toString();
+        //console.log("Else case");
+    }
 }
 
 function setupOperation(operator)
@@ -283,15 +311,14 @@ function performOperation()
     return false;
 }
 
-//make this part of Operation obj?
+//REFACTOR---------------------------------------------------------
 function operate()
 {
     if(!rightOperandIsSet())
     {
         if(!leftOperandIsSet())
         {
-            //set left?
-            console.log("returned the currVal_text because both operands are NaN");
+            //console.log("returned the currVal_text because both operands are NaN");
             return currVal_text;
         }
         else
