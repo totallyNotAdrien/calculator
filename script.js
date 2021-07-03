@@ -81,7 +81,7 @@ const Special =
 };
 
 const grid = document.querySelector("#grid");
-const gridArr = Array.from(grid.querySelectorAll("div"));
+let gridArr;
 const displayText = document.querySelector("#display-text");
 const chars =
     [
@@ -92,6 +92,49 @@ const chars =
         '0', Special.DECIMAL, Special.EQUALS, Special.DELETE
     ];
 const maxChars = 17;
+
+const KeyChars =
+{
+    "Numpad0": "0",
+    "Numpad1": "1",
+    "Numpad2": "2",
+    "Numpad3": "3",
+    "Numpad4": "4",
+    "Numpad5": "5",
+    "Numpad6": "6",
+    "Numpad7": "7",
+    "Numpad8": "8",
+    "Numpad9": "9",
+    "NumpadDecimal": Special.DECIMAL,
+    "NumpadDivide": Special.DIVIDE,
+    "NumpadMultiply": Special.MULTIPLY,
+    "NumpadSubtract": Special.SUBTRACT,
+    "NumpadAdd": Special.ADD,
+    "NumpadEnter": Special.EQUALS,
+    "Backspace": Special.DELETE,
+    "Delete": Special.DELETE,
+    "Minus": Special.NEGATE,
+    "Equal": Special.EQUALS
+}
+
+function keyHandler(e)
+{
+    //remove focus from previously clicked button if one exists
+    let element = document.querySelector(":focus");
+    if(element)
+    {
+        element.blur();
+    }
+    //invoke associated button's click event
+    if(KeyChars[e.code])
+    {
+        let button = gridArr.find((item) => item.dataset.char === KeyChars[e.code]);
+        if(button)
+        {
+            button.dispatchEvent(new Event("click"));
+        }
+    }
+}
 
 const Operation =
 {
@@ -110,17 +153,18 @@ let currVal_text = "0";
 let prevButton = Special.NIL;
 
 setup();
+window.addEventListener("keydown", keyHandler);
 
 
-function addStuffToGrid(things)
+function addStuffToGrid(charInfo)
 {
-    for(let i = 0; i < things.length; i++)
+    for(let i = 0; i < charInfo.length; i++)
     {
         let temp = document.createElement("button");
         //console.log(i);
-        temp.textContent = "" + things[i];
+        temp.textContent = "" + charInfo[i];
         temp.classList.add("grid-item");
-        temp.setAttribute("data-char", things[i])
+        temp.setAttribute("data-char", charInfo[i])
         setupButtonListener(temp);
         grid.appendChild(temp);
     }
@@ -132,6 +176,7 @@ function setup()
 {
     //console.log(`${chars.length} buttons to add`);
     addStuffToGrid(chars);
+    gridArr = Array.from(grid.children);
     updateDisplay();
 }
 
@@ -233,9 +278,9 @@ function updateDisplay()
     let currAsNum = parseFloat(currVal_text);
     let temp = parseFloat(currAsNum.toPrecision(15));
     let tempString = temp.toString();
-    let tenTo13th = Math.pow(10,13);
-    let tenToNeg7th = Math.pow(10,-7);
-    let tooMuchPrecision = tempString.length > 13 && 
+    let tenTo13th = Math.pow(10, 13);
+    let tenToNeg7th = Math.pow(10, -7);
+    let tooMuchPrecision = tempString.length > 13 &&
         (temp < 1 && temp > tenToNeg7th || temp > -1 && temp < -tenToNeg7th);
 
     if(temp === 0 || prevButtonIsDigitOrDecimal())
