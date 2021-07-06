@@ -236,7 +236,6 @@ function trackedButtonPress(e)
     {
         prevButton = e.target.dataset.char;
     }
-    //test whether else{set to NIL} breaks things -------------------------------------------------
     updateDisplay();
 }
 
@@ -290,17 +289,14 @@ function updateDisplay()
     else if(tooMuchPrecision)
     {
         displayText.textContent = temp.toPrecision(7);
-        //console.log("precision: 7");
     }
     else if(temp >= tenTo13th || temp <= -tenTo13th || (temp <= tenToNeg7th && temp >= -tenToNeg7th))
     {
         displayText.textContent = temp.toExponential(5);
-        //console.log("exponential: 5");
     }
     else
     {
         displayText.textContent = temp.toString();
-        //console.log("Else case");
     }
 }
 
@@ -356,31 +352,14 @@ function performOperation()
     return false;
 }
 
-//REFACTOR---------------------------------------------------------
 function operate()
 {
-    if(!rightOperandIsSet())
+    let endOperation = handleRightSideOrEnd();
+    if(endOperation)
     {
-        if(!leftOperandIsSet())
-        {
-            //console.log("returned the currVal_text because both operands are NaN");
-            return currVal_text;
-        }
-        else
-        {
-            if(Operation.operator !== Special.NIL)
-            {
-                if(prevButtonIsOperator())
-                {
-                    Operation.right = Operation.left;
-                }
-                else
-                {
-                    Operation.right = parseFloat(currVal_text);
-                }
-            }
-        }
+        return;
     }
+    
     let result = parseFloat(currVal_text);
     switch(Operation.operator)
     {
@@ -399,6 +378,33 @@ function operate()
     }
     currVal_text = result.toString();
     updateDisplay();
+}
+
+function handleRightSideOrEnd()
+{
+    let endOperation = false;
+    if(!rightOperandIsSet())
+    {
+        if(!leftOperandIsSet())
+        {
+            endOperation = true;
+        }
+        else
+        {
+            if(Operation.operator !== Special.NIL)
+            {
+                if(prevButtonIsOperator())
+                {
+                    Operation.right = Operation.left;
+                }
+                else
+                {
+                    Operation.right = parseFloat(currVal_text);
+                }
+            }
+        }
+    }
+    return endOperation;
 }
 
 function doPercentThing()
@@ -554,6 +560,7 @@ function deleteMostRecentChar()
 {
     if(prevButtonIsDigitOrDecimal())
     {
+        //special case for single-digit negative numbers
         if(currVal_text.length === 2 && currVal_text[0] === "-")
         {
             resetCurrValAndPreviousButton();
