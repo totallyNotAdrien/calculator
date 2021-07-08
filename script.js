@@ -164,10 +164,24 @@ function addStuffToGrid(charInfo)
         //console.log(i);
         temp.textContent = "" + charInfo[i];
         temp.classList.add("grid-item");
-        temp.setAttribute("data-char", charInfo[i])
+        temp.setAttribute("data-char", charInfo[i]);
+        if(isInnerButtonChar(charInfo[i]))
+        {
+            temp.classList.add("inner-button");
+        }
+        else
+        {
+            temp.classList.add("outer-button");
+        }
         setupButtonListener(temp);
         grid.appendChild(temp);
     }
+}
+
+function isInnerButtonChar(char)
+{
+    let chars = ['0','1','2','3','4','5','6','7','8','9',Special.DECIMAL, Special.EQUALS];
+    return chars.includes(char);
 }
 
 
