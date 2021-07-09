@@ -16,6 +16,7 @@ body
     transform: translate(-50%,-50%);
     justify-items: center;
     background-color: #5b9aff;
+    box-shadow: 5px 5px 5px rgba(0,0,0,0.75);
 }
 
 #display
@@ -27,12 +28,14 @@ body
     width: 90%;
     border: thin solid black;
     background-color: #f9ffc3;
+    box-shadow: 4px 4px 4px rgba(100,100,100,0.75) inset;
 }
 
 #display-text
 {
     position: absolute;
     right: 5px;
+    top: 5px;
     text-align: right;
     font-size: 2em;
     font-family: monospace;
@@ -58,6 +61,12 @@ body
     height: 100%;
     width: 100%;
     border-radius: 10%;
+    box-shadow: 2px 2px 2px rgba(100,100,100,0.75);
+}
+
+.grid-item:active
+{
+    box-shadow: 3px 3px 4px rgba(150,150,150,0.75) inset;
 }
 
 .inner-button
