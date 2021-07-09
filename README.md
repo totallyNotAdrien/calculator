@@ -1,3 +1,3 @@
 # Calculator
 
-Calculator with numpad support made with HTML, CSS and Javascript
+Calculator with numpad support made with HTML, CSS, and JavaScript
