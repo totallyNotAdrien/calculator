@@ -1,42 +1,3 @@
-class Color
-{
-    static BLACK = new Color(0, 0, 0, 1);
-    static WHITE = new Color(255, 255, 255, 1);
-    static GRAY = new Color(127, 127, 127, 1);
-    static LIGHT_GRAY = new Color(230, 230, 230, 1);
-    static RED = new Color(255, 0, 0, 1);
-    static GREEN = new Color(0, 200, 0, 1);
-
-    constructor(red, green, blue, alpha = 1)
-    {
-        this.red = red;
-        this.green = green;
-        this.blue = blue;
-        this.alpha = alpha;
-    }
-
-    toCssString()
-    {
-        return `rgba(${this.red}, ${this.green}, ${this.blue}, ${this.alpha})`;
-    }
-
-    static randomColor(alpha = 1)
-    {
-        return new Color(randomRangeExclusive(256), randomRangeExclusive(256), randomRangeExclusive(256), alpha);
-    }
-
-}
-function randomRangeExclusive(a, b = 0)
-{
-    if(typeof a === typeof 2 && typeof b === typeof 2)
-    {
-        let min = a < b ? a : b;
-        let max = min === a ? b : a;
-        let range = max - min;
-        return Math.random() * range + min;
-    }
-}
-
 function allSameType()
 {
     if(arguments.length > 0)
@@ -65,19 +26,7 @@ const Special =
     CLEAR: "clear",
     DECIMAL: ".",
     DELETE: "delete",
-    NIL: "nil",
-    includesValue: function (val)
-    {
-        let keys = Object.keys(this);
-        for(let i = 0; i < keys.length; i++)
-        {
-            if(this[keys[i]] === val)
-            {
-                return true;
-            }
-        }
-        return false;
-    }
+    NIL: "nil"
 };
 
 const grid = document.querySelector("#grid");
@@ -161,7 +110,6 @@ function addStuffToGrid(charInfo)
     for(let i = 0; i < charInfo.length; i++)
     {
         let temp = document.createElement("button");
-        //console.log(i);
         temp.textContent = "" + charInfo[i];
         temp.classList.add("grid-item");
         temp.setAttribute("data-char", charInfo[i]);
@@ -180,15 +128,12 @@ function addStuffToGrid(charInfo)
 
 function isInnerButtonChar(char)
 {
-    let chars = ['0','1','2','3','4','5','6','7','8','9',Special.DECIMAL, Special.EQUALS];
+    let chars = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', Special.DECIMAL, Special.EQUALS];
     return chars.includes(char);
 }
 
-
-
 function setup()
 {
-    //console.log(`${chars.length} buttons to add`);
     addStuffToGrid(chars);
     gridArr = Array.from(grid.children);
     updateDisplay();
@@ -208,7 +153,7 @@ function setupButtonListener(button)
         case Special.PERCENT:
         case Special.EQUALS:
         case Special.DECIMAL:
-            button.addEventListener("click", trackedButtonPress);
+            button.addEventListener("click", pressTrackedButton);
             break;
         case Special.NEGATE:
             button.addEventListener("click", negateCurrVal);
@@ -217,12 +162,12 @@ function setupButtonListener(button)
             button.addEventListener("click", deleteMostRecentChar);
             break;
         default:
-            button.addEventListener("click", trackedButtonPress);
+            button.addEventListener("click", pressTrackedButton);
             break;
     }
 }
 
-function trackedButtonPress(e)
+function pressTrackedButton(e)
 {
     let completed = false;
     switch(e.target.dataset.char)
@@ -289,31 +234,34 @@ function clearAndResetEverything()
 function updateDisplay()
 {
     let currAsNum = parseFloat(currVal_text);
-    let temp = parseFloat(currAsNum.toPrecision(15));
-    let tempString = temp.toString();
+    let currWithPrecision = parseFloat(currAsNum.toPrecision(15));
+    let currPrecisionString = currWithPrecision.toString();
     let tenTo13th = Math.pow(10, 13);
     let tenToNeg7th = Math.pow(10, -7);
-    let tooMuchPrecision = tempString.length > 13 &&
-        (temp < 1 && temp > tenToNeg7th || temp > -1 && temp < -tenToNeg7th);
+    let tooMuchPrecision = currPrecisionString.length > 13 &&
+        (currWithPrecision < 1 && currWithPrecision > tenToNeg7th ||
+            currWithPrecision > -1 && currWithPrecision < -tenToNeg7th);
 
-    if(temp === 0 || prevButtonIsDigitOrDecimal())
+    if(currWithPrecision === 0 || prevButtonIsDigitOrDecimal())
     {
         displayText.textContent = currVal_text;
     }
     else if(tooMuchPrecision)
     {
-        displayText.textContent = temp.toPrecision(7);
+        displayText.textContent = currWithPrecision.toPrecision(7);
     }
-    else if(temp >= tenTo13th || temp <= -tenTo13th || (temp <= tenToNeg7th && temp >= -tenToNeg7th))
+    else if(currWithPrecision >= tenTo13th || currWithPrecision <= -tenTo13th ||
+        (currWithPrecision <= tenToNeg7th && currWithPrecision >= -tenToNeg7th))
     {
-        displayText.textContent = temp.toExponential(5);
+        displayText.textContent = currWithPrecision.toExponential(5);
     }
     else
     {
-        displayText.textContent = temp.toString();
+        displayText.textContent = currWithPrecision.toString();
     }
 }
 
+//operator pressed
 function setupOperation(operator)
 {
     if(prevButtonIsDigitOrDecimal() && Operation.operator !== Special.NIL)
@@ -339,7 +287,7 @@ function performOperation()
 {
     if(Operation.operator !== Special.NIL)
     {
-        //just after operate is called elsewhere
+        //if operate was called from a previous button press
         if(prevButtonIsOperator() && rightOperandIsSet() ||
             prevButton === Special.EQUALS)
         {
@@ -373,7 +321,7 @@ function operate()
     {
         return;
     }
-    
+
     let result = parseFloat(currVal_text);
     switch(Operation.operator)
     {
